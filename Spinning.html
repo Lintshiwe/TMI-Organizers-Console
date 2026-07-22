@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <title>Admin Presentation Wheel</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            perspective: 1000px;
+        }
+
+        /* The 3D Wheel */
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            box-shadow: 
+                0 0 0 12px rgba(255,255,255,0.8),
+                0 0 0 24px rgba(37,99,235,0.1),
+                0 20px 60px rgba(0,0,0,0.15),
+                inset 0 0 60px rgba(0,0,0,0.05);
+            background: conic-gradient(
+                from 0deg,
+                #ef4444 0deg 60deg,
+                #f97316 60deg 120deg,
+                #eab308 120deg 180deg,
+                #22c55e 180deg 240deg,
+                #06b6d4 240deg 300deg,
+                #8b5cf6 300deg 360deg
+            );
+        }
+
+        /* Segment Labels */
+        .segment-label {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform-origin: 0 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* Center Spin Button */
+        .spin-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff, #e2e8f0);
+            border: 4px solid rgba(255,255,255,0.9);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2), inset 0 2px 10px rgba(255,255,255,0.8);
+            cursor: pointer;
+            z-index: 10;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: translate(-50%, -50%) scale(1.08);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+
+        .spin-btn:active:not(:disabled) {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Pointer */
+        .pointer {
+            position: absolute;
+            top: -20px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 35px solid #fbbf24;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        /* Winner Display */
+        .winner-display {
+            position: absolute;
+            bottom: -80px; left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .winner-display.show { opacity: 1; }
+        .winner-label { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
+        .winner-name { font-size: 28px; font-weight: 800; color: var(--primary); }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: -140px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .btn:hover { background: #f1f5f9; }
+        .btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn.primary:hover { background: #1d4ed8; }
+
+        @media (max-width: 500px) {
+            .wheel-container { width: 300px; height: 300px; }
+            .spin-btn { width: 60px; height: 60px; font-size: 12px; }
+            .winner-name { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel"></div>
+        <button class="spin-btn" id="spinBtn" onclick="spin()">SPIN</button>
+        
+        <div class="winner-display" id="winnerDisplay">
+            <div class="winner-label">NEXT PRESENTATION</div>
+            <div class="winner-name" id="winnerName"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn primary" onclick="resetWheel()">Reset All</button>
+            <button class="btn" onclick="removeLastWinner()">Remove Last</button>
+        </div>
+    </div>
+
+    <script>
+        const FORM_HANDLER_URL = 'https://tmi-form-handler.netlify.app';
+        const WHEEL_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#8b5cf6','#ec4899','#14b8a6','#f43f5e','#a855f7','#3b82f6','#84cc16'];
+
+        let groups = [];
+        let completedGroups = new Set();
+        let currentRotation = 0;
+        let lastWinnerId = null;
+
+        async function loadTeams() {
+            try {
+                var res = await fetch(FORM_HANDLER_URL + '/api/registrations');
+                var result = await res.json();
+                if (result.success && result.data) {
+                    var teamMap = {};
+                    result.data.forEach(function(r) {
+                        var tn = r.teamName || 'Unassigned';
+                        if (!teamMap[tn]) teamMap[tn] = { name: tn, members: [] };
+                        teamMap[tn].members.push(r.firstName + ' ' + r.lastName);
+                    });
+                    var teamNames = Object.keys(teamMap).filter(function(n) { return n !== 'Unassigned'; });
+                    if (teamNames.length === 0) teamNames = ['No Teams Yet'];
+                    groups = teamNames.map(function(name, i) {
+                        return { id: i + 1, name: name, color: WHEEL_COLORS[i % WHEEL_COLORS.length] };
+                    });
+                }
+            } catch (_) {
+                groups = [{ id: 1, name: 'No Connection', color: '#ef4444' }];
+            }
+            renderWheel();
+        }
+
+        function renderWheel() {
+            var wheel = document.getElementById('wheel');
+            var activeGroups = groups.filter(function(g) { return !completedGroups.has(g.id); });
+            
+            if (activeGroups.length === 0) {
+                wheel.style.background = '#e2e8f0';
+                wheel.innerHTML = '';
+                return;
+            }
+
+            var segAngle = 360 / activeGroups.length;
+            var gradientStops = [];
+            activeGroups.forEach(function(g, i) {
+                var start = i * segAngle;
+                var end = (i + 1) * segAngle;
+                gradientStops.push(g.color + ' ' + start + 'deg ' + end + 'deg');
+            });
+            
+            wheel.style.background = 'conic-gradient(from 0deg, ' + gradientStops.join(', ') + ')';
+            var radius = Math.min(wheel.offsetWidth, wheel.offsetHeight) * 0.32 || 140;
+
+            wheel.innerHTML = activeGroups.map(function(g, i) {
+                var angle = (i * segAngle) + (segAngle / 2);
+                var rad = (angle - 90) * (Math.PI / 180);
+                var x = Math.cos(rad) * radius;
+                var y = Math.sin(rad) * radius;
+                var rotation = 'rotate(' + angle + 'deg)';
+                var textRotation = (angle > 90 && angle < 270) ? 'rotate(' + (angle + 180) + 'deg)' : rotation;
+                return '<div class="segment-label" style="transform: translate(' + x + 'px, ' + y + 'px) ' + textRotation + ';font-size:13px;">' + g.name + '</div>';
+            }).join('');
+        }
+
+        function spin() {
+            var activeGroups = groups.filter(function(g) { return !completedGroups.has(g.id); });
+            if (activeGroups.length === 0 || document.getElementById('spinBtn').disabled) return;
+
+            var btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            document.getElementById('winnerDisplay').classList.remove('show');
+
+            var extraSpins = 360 * (5 + Math.floor(Math.random() * 4));
+            var segAngle = 360 / activeGroups.length;
+            var randomIndex = Math.floor(Math.random() * activeGroups.length);
+            var targetAngle = extraSpins + (randomIndex * segAngle) + (segAngle / 2);
+
+            currentRotation += targetAngle;
+            document.getElementById('wheel').style.transform = 'rotate(' + currentRotation + 'deg)';
+
+            setTimeout(function() {
+                var winner = activeGroups[randomIndex];
+                completedGroups.add(winner.id);
+                lastWinnerId = winner.id;
+
+                document.getElementById('winnerName').textContent = winner.name;
+                document.getElementById('winnerDisplay').classList.add('show');
+
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+                if (completedGroups.size >= groups.length) {
+                    btn.textContent = 'DONE';
+                } else {
+                    btn.disabled = false;
+                }
+
+                renderWheel();
+            }, 4200);
+        }
+
+        function resetWheel() {
+            completedGroups.clear();
+            lastWinnerId = null;
+            currentRotation = 0;
+            document.getElementById('wheel').style.transform = 'rotate(0deg)';
+            document.getElementById('spinBtn').disabled = false;
+            document.getElementById('spinBtn').textContent = 'SPIN';
+            document.getElementById('winnerDisplay').classList.remove('show');
+            renderWheel();
+        }
+
+        function removeLastWinner() {
+            if (lastWinnerId !== null) {
+                completedGroups.delete(lastWinnerId);
+                lastWinnerId = null;
+                document.getElementById('spinBtn').disabled = false;
+                document.getElementById('spinBtn').textContent = 'SPIN';
+                document.getElementById('winnerDisplay').classList.remove('show');
+                renderWheel();
+            }
+        }
+
+        loadTeams();
+    </script>
+</body>
+</html>
