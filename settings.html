@@ -9,7 +9,6 @@
         :root { --primary: #2563eb; --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --muted: #64748b; --border: #e2e8f0; --success: #10b981; --danger: #ef4444; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
-        
         .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; position: fixed; height: 100vh; }
         .brand { font-size: 20px; font-weight: 800; padding: 0 12px 24px; display: flex; align-items: center; gap: 10px; }
         .brand img { border-radius: 6px; }
@@ -17,16 +16,13 @@
         .nav-item:hover { background: #f1f5f9; color: var(--text); }
         .nav-item.active { background: #eff6ff; color: var(--primary); font-weight: 600; }
         .nav-item svg { width: 20px; height: 20px; fill: currentColor; }
-        
         .main { margin-left: 240px; flex: 1; padding: 32px 40px; max-width: 1000px; }
         .header { margin-bottom: 32px; }
         .title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
         .subtitle { color: var(--muted); font-size: 15px; }
-        
         .card { background: var(--surface); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 32px; margin-bottom: 24px; }
         .card-title { font-size: 18px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
         .card-title svg { width: 22px; height: 22px; fill: var(--primary); }
-        
         .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
         .toggle-row:last-child { border-bottom: none; }
         .toggle-label { font-size: 15px; font-weight: 500; }
@@ -37,23 +33,10 @@
         .toggle-slider:before { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; }
         .toggle input:checked + .toggle-slider { background: var(--primary); }
         .toggle input:checked + .toggle-slider:before { transform: translateX(22px); }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; outline: none; background: white; font-family: inherit; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
-        .form-group textarea { min-height: 100px; resize: vertical; }
-        
-        .btn { padding: 12px 28px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #dc2626; }
-        
-        .danger-zone { border: 1px solid #fecaca; }
-        .danger-zone .card-title { color: var(--danger); }
-        
-        @media (max-width: 768px) { .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border); padding: 16px; } .main { margin-left: 0; padding: 20px; } }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px; z-index: 100; display: none; animation: fadeIn 0.3s; }
+        .toast.show { display: block; }
+        .toast-success { background: #10b981; color: white; }
+        @media (max-width: 768px) { .sidebar { width: 100%; height: auto; position: relative; border-bottom: 1px solid var(--border); } .main { margin-left: 0; padding: 20px; } }
     </style>
 </head>
 <body>
@@ -72,36 +55,13 @@
             <p class="subtitle">Configure your TMI Hackathon event preferences</p>
         </div>
 
-        <div class="card">
-            <div class="card-title"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Registration Settings</div>
-            <div class="toggle-row">
-                <div><div class="toggle-label">Registration Open</div><div class="toggle-desc">Allow new participants to register</div></div>
-                <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-row">
-                <div><div class="toggle-label">Auto-Approve Registrations</div><div class="toggle-desc">Automatically approve new registrations</div></div>
-                <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
-            </div>
-        </div>
-
-        <div class="card">
+        <div class="card" id="submissionCard">
             <div class="card-title"><svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg> Submission Settings</div>
-            <div class="toggle-row">
-                <div><div class="toggle-label">Project Submissions Open</div><div class="toggle-desc">Allow teams to submit projects</div></div>
-                <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-row">
-                <div><div class="toggle-label">Max File Size (MB)</div><div class="toggle-desc">Maximum upload size for project files</div></div>
-                <select style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:white;"><option>10 MB</option><option selected>25 MB</option><option>50 MB</option></select>
-            </div>
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:14px;">Loading...</div>
         </div>
 
-        <div class="card">
-            <div class="card-title"><svg viewBox="0 0 24 24"><path d="M19 14l-7-5-7 5V5h14v9z"/></svg> Email & Notifications</div>
-            <div class="form-group">
-                <label>Sender Email</label>
-                <input type="email" value="noreply@tmihackathon.com">
-            </div>
+        <div class="card" id="emailCard">
+            <div class="card-title"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg> Email & Notifications</div>
             <div class="toggle-row">
                 <div><div class="toggle-label">Send Approval Emails</div><div class="toggle-desc">Notify participants when approved</div></div>
                 <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
@@ -111,15 +71,62 @@
                 <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
             </div>
         </div>
-
-        <div class="card danger-zone">
-            <div class="card-title"><svg viewBox="0 0 24 24" fill="#ef4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> Danger Zone</div>
-            <p style="color:var(--muted);font-size:14px;margin-bottom:20px;">Irreversible actions — proceed with caution.</p>
-            <div style="display:flex;gap:12px;">
-                <button class="btn btn-danger">Reset All Data</button>
-                <button class="btn btn-secondary" style="border:1px solid var(--border);background:var(--surface);color:var(--text);padding:12px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Archive Event</button>
-            </div>
-        </div>
     </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = 'https://tmi-form-handler.netlify.app';
+
+        function loadSubmissionStatus() {
+            fetch(API + '/api/submission-status')
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    if (!result.success) throw new Error('Failed');
+                    render(result.open);
+                })
+                .catch(function() { document.querySelector('#submissionCard .card-title').innerHTML += '<span style="color:var(--danger);font-size:13px;margin-left:auto;">Error loading</span>'; });
+        }
+
+        function render(open) {
+            var card = document.getElementById('submissionCard');
+            card.innerHTML = '<div class="card-title"><svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg> Submission Settings</div>' +
+                '<div class="toggle-row">' +
+                    '<div><div class="toggle-label">Project Submissions Open</div><div class="toggle-desc">When closed, participants cannot submit projects in the Portal</div></div>' +
+                    '<label class="toggle"><input type="checkbox" id="submissionToggle" ' + (open ? 'checked' : '') + ' onchange="toggleSubmissions(this.checked)"><span class="toggle-slider"></span></label>' +
+                '</div>' +
+                '<div style="margin-top:12px;padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:13px;color:var(--muted);">' +
+                    'Current status: <strong style="color:' + (open ? 'var(--success)' : 'var(--danger)') + ';">' + (open ? 'Open' : 'Closed') + '</strong> — ' +
+                    (open ? 'Participants can submit projects.' : 'The submission section is locked in the Participant Portal.') +
+                '</div>';
+        }
+
+        function toggleSubmissions(open) {
+            fetch(API + '/api/submission-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ open: open })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.success) {
+                    showToast('Submissions ' + (open ? 'opened' : 'closed') + ' successfully');
+                    render(result.open);
+                } else {
+                    showToast('Failed to update');
+                }
+            })
+            .catch(function() { showToast('Connection error'); });
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast toast-success show';
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+
+        loadSubmissionStatus();
+    </script>
 </body>
 </html>
